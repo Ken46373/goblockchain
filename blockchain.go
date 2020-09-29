@@ -77,6 +77,11 @@ func (bc *Blockchain) CreateBlock(nonce int, previousHash [32]byte) *Block {
 	return b
 }
 
+// LastBlock get the last block from blockchain
+func (bc *Blockchain) LastBlock() *Block {
+	return bc.chain[len(bc.chain)-1]
+}
+
 // Print Blockchain struct
 func (bc *Blockchain) Print() {
 	for i, block := range bc.chain {
@@ -91,10 +96,14 @@ func init() {
 }
 
 func main() {
-	block := &Block{nonce: 1}
-	fmt.Printf("%x\n", block.Hash())
-	/*
-		blockchain := NewBlockchain()
-		blockchain.Print()
-	*/
+	blockChain := NewBlockchain()
+	blockChain.Print()
+
+	previousHash := blockChain.LastBlock().Hash()
+	blockChain.CreateBlock(5, previousHash)
+	blockChain.Print()
+
+	previousHash = blockChain.LastBlock().Hash()
+	blockChain.CreateBlock(2, previousHash)
+	blockChain.Print()
 }
