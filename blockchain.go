@@ -9,11 +9,13 @@ import (
 	"time"
 )
 
+const MINING_DIFFICULTY = 3
+
 // Block struct
 type Block struct {
+	timestamp    int64
 	nonce        int
 	previousHash [32]byte
-	timestamp    int64
 	transactions []*Transaction
 }
 
@@ -40,7 +42,6 @@ func (b *Block) Print() {
 // Hash Create hash by previous block
 func (b *Block) Hash() [32]byte {
 	m, _ := json.Marshal(b)
-	fmt.Println(string(m))
 	return sha256.Sum256([]byte(m))
 }
 
@@ -95,6 +96,37 @@ func (bc *Blockchain) Print() {
 	fmt.Printf("%s\n", strings.Repeat("*", 25))
 }
 
+// CopyTransactionPool function
+func (bc *Blockchain) CopyTransactionPool() []*Transaction {
+	transactions := make([]*Transaction, 0)
+	for _, t := range bc.transactionPool {
+		transactions = append(transactions,
+			NewTransaction(t.senderBlockchainAddress,
+				t.recipientBlockchainAddress,
+				t.value))
+	}
+	return transactions
+}
+
+// ValidProof function
+func (bc *Blockchain) ValidProof(nonce int, previousHash [32]byte, transactions []*Transaction, difficulty int) bool {
+	zeros := strings.Repeat("0", difficulty)
+	guessBlock := Block{0, nonce, previousHash, transactions}
+	guessHashStr := fmt.Sprintf("%x", guessBlock.Hash())
+	return guessHashStr[:difficulty] == zeros
+}
+
+// ProofOfWork function
+func (bc *Blockchain) ProofOfWork() int {
+	transactions := bc.CopyTransactionPool()
+	previousHash := bc.LastBlock().Hash()
+	nonce := 0
+	for !bc.ValidProof(nonce, previousHash, transactions, MINING_DIFFICULTY) {
+		nonce++
+	}
+	return nonce
+}
+
 // AddTransaction to Blockchain transaction pool
 func (bc *Blockchain) AddTransaction(sender string, recipient string, value float32) {
 	t := NewTransaction(sender, recipient, value)
@@ -144,10 +176,12 @@ func main() {
 
 	blockChain.AddTransaction("A", "B", 1.0)
 	previousHash := blockChain.LastBlock().Hash()
-	blockChain.CreateBlock(5, previousHash)
+	nonce := blockChain.ProofOfWork()
+	blockChain.CreateBlock(nonce, previousHash)
 	blockChain.Print()
 
 	previousHash = blockChain.LastBlock().Hash()
-	blockChain.CreateBlock(2, previousHash)
+	nonce = blockChain.ProofOfWork()
+	blockChain.CreateBlock(nonce, previousHash)
 	blockChain.Print()
 }
