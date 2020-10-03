@@ -72,10 +72,10 @@ type Blockchain struct {
 }
 
 // NewBlockchain create Blockchain struct
-func NewBlockchain(blockchainAAddress string) *Blockchain {
+func NewBlockchain(blockchainAddress string) *Blockchain {
 	b := &Block{}
 	bc := new(Blockchain)
-	bc.blockchainAddress = blockchainAAddress
+	bc.blockchainAddress = blockchainAddress
 	bc.CreateBlock(0, b.Hash())
 	return bc
 }
@@ -149,6 +149,23 @@ func (bc *Blockchain) Mining() bool {
 	return true
 }
 
+// CalculateTotalAmount of one's transactions
+func (bc *Blockchain) CalculateTotalAmount(blockchainAddress string) float32 {
+	var totalAmount float32 = 0.0
+	for _, b := range bc.chain {
+		for _, t := range b.transactions {
+			value := t.value
+			if blockchainAddress == t.recipientBlockchainAddress {
+				totalAmount += value
+			}
+			if blockchainAddress == t.senderBlockchainAddress {
+				totalAmount -= value
+			}
+		}
+	}
+	return totalAmount
+}
+
 // Transaction struct
 type Transaction struct {
 	senderBlockchainAddress    string
@@ -200,4 +217,8 @@ func main() {
 	blockChain.AddTransaction("E", "F", 3.0)
 	blockChain.Mining()
 	blockChain.Print()
+
+	fmt.Printf("my %.1f\n", blockChain.CalculateTotalAmount("my_blockchain_address"))
+	fmt.Printf("C %.1f\n", blockChain.CalculateTotalAmount("C"))
+	fmt.Printf("D %.1f\n", blockChain.CalculateTotalAmount("D"))
 }
