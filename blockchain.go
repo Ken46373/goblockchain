@@ -9,7 +9,11 @@ import (
 	"time"
 )
 
-const MINING_DIFFICULTY = 3
+const (
+	MINING_DIFFICULTY = 3
+	MINING_SENDER     = "THE BLOCKCHAIN"
+	MINING_REWARD     = 1.0
+)
 
 // Block struct
 type Block struct {
@@ -62,14 +66,16 @@ func (b *Block) MarshalJSON() ([]byte, error) {
 
 // Blockchain struct
 type Blockchain struct {
-	transactionPool []*Transaction
-	chain           []*Block
+	transactionPool   []*Transaction
+	chain             []*Block
+	blockchainAddress string
 }
 
 // NewBlockchain create Blockchain struct
-func NewBlockchain() *Blockchain {
+func NewBlockchain(blockchainAAddress string) *Blockchain {
 	b := &Block{}
 	bc := new(Blockchain)
+	bc.blockchainAddress = blockchainAAddress
 	bc.CreateBlock(0, b.Hash())
 	return bc
 }
@@ -94,6 +100,12 @@ func (bc *Blockchain) Print() {
 		block.Print()
 	}
 	fmt.Printf("%s\n", strings.Repeat("*", 25))
+}
+
+// AddTransaction to Blockchain transaction pool
+func (bc *Blockchain) AddTransaction(sender string, recipient string, value float32) {
+	t := NewTransaction(sender, recipient, value)
+	bc.transactionPool = append(bc.transactionPool, t)
 }
 
 // CopyTransactionPool function
@@ -127,10 +139,14 @@ func (bc *Blockchain) ProofOfWork() int {
 	return nonce
 }
 
-// AddTransaction to Blockchain transaction pool
-func (bc *Blockchain) AddTransaction(sender string, recipient string, value float32) {
-	t := NewTransaction(sender, recipient, value)
-	bc.transactionPool = append(bc.transactionPool, t)
+// Mining function
+func (bc *Blockchain) Mining() bool {
+	bc.AddTransaction(MINING_SENDER, bc.blockchainAddress, MINING_REWARD)
+	nonce := bc.ProofOfWork()
+	previousHash := bc.LastBlock().Hash()
+	bc.CreateBlock(nonce, previousHash)
+	log.Println("action=mining, status=success")
+	return true
 }
 
 // Transaction struct
@@ -171,17 +187,17 @@ func init() {
 }
 
 func main() {
-	blockChain := NewBlockchain()
+	myBlockchianAddress := "my_blockchain_address"
+
+	blockChain := NewBlockchain(myBlockchianAddress)
 	blockChain.Print()
 
 	blockChain.AddTransaction("A", "B", 1.0)
-	previousHash := blockChain.LastBlock().Hash()
-	nonce := blockChain.ProofOfWork()
-	blockChain.CreateBlock(nonce, previousHash)
+	blockChain.Mining()
 	blockChain.Print()
 
-	previousHash = blockChain.LastBlock().Hash()
-	nonce = blockChain.ProofOfWork()
-	blockChain.CreateBlock(nonce, previousHash)
+	blockChain.AddTransaction("C", "D", 2.0)
+	blockChain.AddTransaction("E", "F", 3.0)
+	blockChain.Mining()
 	blockChain.Print()
 }
