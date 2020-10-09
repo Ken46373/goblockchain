@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"goblockchain/utils"
 	"goblockchain/wallet"
 	"html/template"
@@ -68,6 +69,20 @@ func (ws *WalletServer) CreateTransaction(w http.ResponseWriter, req *http.Reque
 			log.Println("ERROR: missing field(s)")
 			io.WriteString(w, string(utils.JsonStatus("fail")))
 		}
+
+		publicKey := utils.PublicKeyFromString(*t.SenderPublicKey)
+		privateKey := utils.PrivateKeyFromString(*t.SenderPrivateKey, publicKey)
+		value, err := strconv.ParseFloat(*t.Value, 32)
+		if err != nil {
+			log.Println("ERROR: Parse error")
+			io.WriteString(w, string(utils.JsonStatus("fail")))
+			return
+		}
+		value32 := float32(value)
+		fmt.Println(publicKey)
+		fmt.Println(privateKey)
+		fmt.Printf("%.1f\n", value32)
+
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		log.Println("ERROR: Invalid HTTP Method")
