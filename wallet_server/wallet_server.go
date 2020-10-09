@@ -65,17 +65,19 @@ func (ws *WalletServer) CreateTransaction(w http.ResponseWriter, req *http.Reque
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 			io.WriteString(w, string(utils.JsonStatus("fail")))
+			return
 		}
 		if !t.Validate() {
 			log.Println("ERROR: missing field(s)")
 			io.WriteString(w, string(utils.JsonStatus("fail")))
+			return
 		}
 
 		publicKey := utils.PublicKeyFromString(*t.SenderPublicKey)
 		privateKey := utils.PrivateKeyFromString(*t.SenderPrivateKey, publicKey)
 		value, err := strconv.ParseFloat(*t.Value, 32)
 		if err != nil {
-			log.Println("ERROR: Parse error")
+			log.Println("ERROR: parse error")
 			io.WriteString(w, string(utils.JsonStatus("fail")))
 			return
 		}

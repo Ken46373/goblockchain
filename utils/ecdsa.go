@@ -8,7 +8,6 @@ import (
 	"math/big"
 )
 
-// Signature struct
 type Signature struct {
 	R *big.Int
 	S *big.Int
@@ -26,7 +25,7 @@ func String2BigIntTuple(s string) (big.Int, big.Int) {
 	var biy big.Int
 
 	_ = bix.SetBytes(bx)
-	_ = bix.SetBytes(by)
+	_ = biy.SetBytes(by)
 
 	return bix, biy
 }
